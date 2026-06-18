@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Form</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f5f7;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      background: #fff;
+      width: 100%;
+      max-width: 420px;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    h1 {
+      margin: 0 0 1.5rem;
+      font-size: 1.5rem;
+      color: #1a1a1a;
+    }
+    .field { margin-bottom: 1.25rem; }
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #4338ca; }
+    .message {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: #ecfdf5;
+      color: #065f46;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .message.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Get in touch</h1>
+    <form id="contactForm" novalidate>
+      <div class="field">
+        <label for="firstName">First name</label>
+        <input type="text" id="firstName" name="firstName" autocomplete="given-name" required>
+      </div>
+      <div class="field">
+        <label for="lastName">Last name</label>
+        <input type="text" id="lastName" name="lastName" autocomplete="family-name" required>
+      </div>
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('contactForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const data = {
+        firstName: form.firstName.value.trim(),
+        lastName: form.lastName.value.trim(),
+        email: form.email.value.trim()
+      };
+
+      if (!data.firstName || !data.lastName || !data.email) {
+        showMessage('Please fill in all fields.', false);
+        return;
+      }
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(data.email)) {
+        showMessage('Please enter a valid email address.', false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (res.ok && result.ok) {
+          showMessage('Thanks, ' + data.firstName + '! Your details were saved.', true);
+          form.reset();
+        } else {
+          showMessage(result.error || 'Something went wrong. Please try again.', false);
+        }
+      } catch (err) {
+        showMessage('Could not reach the server. Is it running?', false);
+      }
+    });
+
+    function showMessage(text, success) {
+      message.textContent = text;
+      message.style.background = success ? '#ecfdf5' : '#fef2f2';
+      message.style.color = success ? '#065f46' : '#991b1b';
+      message.classList.add('show');
+    }
+  </script>
+</body>
+</html>
